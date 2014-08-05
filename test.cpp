@@ -7,6 +7,7 @@
 #include <list>
 #include <set>
 #include <unordered_map>
+#include <cstring>
 
 using namespace json11;
 using std::string;
