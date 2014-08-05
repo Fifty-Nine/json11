@@ -46,12 +46,8 @@ static_assert(json11::detail::has_member_to_json<Foo>::value, "");
 static_assert(!json11::detail::has_member_to_json<Bar>::value, "");
 static_assert(json11::detail::has_free_to_json<Foo>::value, "");
 static_assert(json11::detail::has_free_to_json<Bar>::value, "");
-static_assert(!json11::detail::has_only_member_to_json<Foo>::value, "");
-static_assert(!json11::detail::has_only_member_to_json<Bar>::value, "");
 static_assert(!json11::detail::has_only_free_to_json<Foo>::value, "");
 static_assert(json11::detail::has_only_free_to_json<Bar>::value, "");
-static_assert(json11::detail::has_member_and_free_to_json<Foo>::value, "");
-static_assert(!json11::detail::has_member_and_free_to_json<Bar>::value, "");
 }
 
 int main(int argc, char **argv) {
