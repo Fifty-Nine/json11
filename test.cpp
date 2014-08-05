@@ -36,6 +36,24 @@ void parse_from_stdin() {
     }
 }
 
+namespace Dummy {
+struct Foo { Json to_json() const { return "foo_member"; } };
+struct Bar { };
+Json to_json(const Foo& f) { return Json("foo_free"); }
+Json to_json(const Bar& b) { return Json("bar"); }
+
+static_assert(json11::detail::has_member_to_json<Foo>::value, "");
+static_assert(!json11::detail::has_member_to_json<Bar>::value, "");
+static_assert(json11::detail::has_free_to_json<Foo>::value, "");
+static_assert(json11::detail::has_free_to_json<Bar>::value, "");
+static_assert(!json11::detail::has_only_member_to_json<Foo>::value, "");
+static_assert(!json11::detail::has_only_member_to_json<Bar>::value, "");
+static_assert(!json11::detail::has_only_free_to_json<Foo>::value, "");
+static_assert(json11::detail::has_only_free_to_json<Bar>::value, "");
+static_assert(json11::detail::has_member_and_free_to_json<Foo>::value, "");
+static_assert(!json11::detail::has_member_and_free_to_json<Bar>::value, "");
+}
+
 int main(int argc, char **argv) {
     if (argc == 2 && argv[1] == string("--stdin")) {
         parse_from_stdin();
@@ -111,4 +129,21 @@ int main(int argc, char **argv) {
     std::vector<Point> points = { { 1, 2 }, { 10, 20 }, { 100, 200 } };
     std::string points_json = Json(points).dump();
     printf("%s\n", points_json.c_str());
+    
+    Dummy::Foo foo;
+    std::string foo_json = Json(foo).dump();
+    printf("%s\n", foo_json.c_str());
+
+    Dummy::Bar bar;
+    std::string bar_json = Json(bar).dump();
+    printf("%s\n", bar_json.c_str());
+
+    std::vector<Dummy::Foo> foos = { {}, {} };
+    std::vector<Dummy::Bar> bars = { {}, {} };
+
+    std::string foos_json = Json(foos).dump();
+    printf("%s\n", foos_json.c_str());
+
+    std::string bars_json = Json(bars).dump();
+    printf("%s\n", bars_json.c_str());
 }

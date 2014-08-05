@@ -60,6 +60,80 @@ namespace json11 {
 
 class JsonValue;
 
+namespace detail
+{
+
+/* A helper class for implementing the traits below. */
+struct TraitsHelpers
+{
+    static std::false_type test_member(...);
+    static std::false_type test_free(...);
+
+    template<class S>
+    static std::true_type test_member(
+        const S&,
+        decltype(&S::to_json)* = 0
+    );
+
+    template<class S>
+    static std::true_type test_free(
+        const S&,
+        decltype(to_json(std::declval<S>()))* = 0
+    );
+};
+
+/* Inherits from std::true_type if t.to_json() is a valid expression. */
+template<class T>
+struct has_member_to_json : 
+    decltype(TraitsHelpers::test_member(std::declval<T>()))
+{
+};
+
+/* Inherits from std::true_type if to_json(t) is a valid expression. */
+template<class T>
+struct has_free_to_json : 
+    decltype(TraitsHelpers::test_free(std::declval<T>()))
+{
+};
+
+/* 
+ * Inherits from std::true_type if t.to_json() is valid but to_json(t)
+ * is not.
+ */
+template<class T>
+struct has_only_member_to_json : 
+    std::integral_constant<
+        bool, 
+        has_member_to_json<T>::value && !has_free_to_json<T>::value
+    >
+{ };
+
+/*
+ * Inherits from std::true_type if to_json(t) is valid but t.to_json()
+ * is not.
+ */
+template<class T>
+struct has_only_free_to_json : 
+    std::integral_constant<
+        bool, 
+        !has_member_to_json<T>::value && has_free_to_json<T>::value
+    >
+{ };
+
+/* 
+ * Inherits from std::true_type if both t.to_json(t) and to_json(t)
+ * are valid expressions.
+ */
+template<class T>
+struct has_member_and_free_to_json : 
+    std::integral_constant<
+        bool, 
+        has_member_to_json<T>::value && has_free_to_json<T>::value
+    >
+{ };
+
+}
+
 class Json final {
 public:
     // Types
@@ -84,10 +158,21 @@ public:
     Json(array &&values);           // ARRAY
     Json(const object &values);     // OBJECT
     Json(object &&values);          // OBJECT
-
-    // Implicit constructor: anything with a to_json() function.
-    template <class T, class = decltype(&T::to_json)>
-    Json(const T & t) : Json(t.to_json()) {}
+   
+    // Implicit constructor: anything with only a to_json() function.
+    template<class T, typename std::enable_if<
+        detail::has_only_member_to_json<T>::value, int>::type = 0>
+    Json(const T& t) : Json(t.to_json()) { }
+    
+    // Implicit constructor: anything with only a to_json() free function.
+    template<class T, typename std::enable_if<
+        detail::has_only_free_to_json<T>::value, int>::type = 0>
+    Json(const T& t) : Json(to_json(t)) { }
+    
+    // Implicit constructor: anything with both a to_json() free and member function.
+    template<class T, typename std::enable_if<
+        detail::has_member_and_free_to_json<T>::value, int>::type = 0>
+    Json(const T& t) : Json(t.to_json()) { }
 
     // Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
     template <class M, typename std::enable_if<
