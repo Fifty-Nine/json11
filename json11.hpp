@@ -66,17 +66,17 @@ namespace detail
 /* A helper class for implementing the traits below. */
 struct TraitsHelpers
 {
-    static std::false_type test_member(...);
-    static std::false_type test_free(...);
+    static std::false_type test_member_encode(...);
+    static std::false_type test_free_encode(...);
 
     template<class S>
-    static std::true_type test_member(
+    static std::true_type test_member_encode(
         const S&,
         decltype(std::declval<S>().to_json())* = 0
     );
 
     template<class S>
-    static std::true_type test_free(
+    static std::true_type test_free_encode(
         const S&,
         decltype(to_json(std::declval<S>()))* = 0
     );
@@ -85,14 +85,14 @@ struct TraitsHelpers
 /* Inherits from std::true_type if t.to_json() is a valid expression. */
 template<class T>
 struct has_member_to_json : 
-    decltype(TraitsHelpers::test_member(std::declval<T>()))
+    decltype(TraitsHelpers::test_member_encode(std::declval<T>()))
 {
 };
 
 /* Inherits from std::true_type if to_json(t) is a valid expression. */
 template<class T>
 struct has_free_to_json : 
-    decltype(TraitsHelpers::test_free(std::declval<T>()))
+    decltype(TraitsHelpers::test_free_encode(std::declval<T>()))
 {
 };
 
