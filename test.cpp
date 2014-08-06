@@ -158,4 +158,8 @@ int main(int argc, char **argv) {
 
     std::string bars_json = Json(bars).dump();
     printf("%s\n", bars_json.c_str());
+
+    Dummy::Baz baz = Json().as<Dummy::Baz>();
+    Dummy::Quux quux = Json().as<Dummy::Quux>();
+    Dummy::Corge cg = Json().as<Dummy::Corge>();
 }

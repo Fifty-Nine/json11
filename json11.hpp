@@ -261,6 +261,30 @@ public:
     // Parse multiple objects, concatenated or separated by whitespace
     static std::vector<Json> parse_multi(const std::string & in, std::string & err);
 
+    /* Converts a Json object to type T if T has a from_json method. */
+    template<class T>
+    T as(typename std::enable_if<
+            detail::has_member_from_json<T>::value
+        >::type* = 0) const
+    {
+        return T::from_json(*this);
+    }
+
+    /* 
+     * Converts a Json object to type T if from_json(Json(), some_t) exists and
+     * T is default constructible.
+     */
+    template<class T>
+    T as(typename std::enable_if<
+            detail::has_only_free_from_json<T>::value
+        >::type* = 0
+    ) const
+    {
+        T result;
+        from_json(*this, result);
+        return result;
+    }
+
     bool operator== (const Json &rhs) const;
     bool operator<  (const Json &rhs) const;
     bool operator!= (const Json &rhs) const { return !(*this == rhs); }
