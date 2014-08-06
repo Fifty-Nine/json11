@@ -285,6 +285,19 @@ public:
         return result;
     }
 
+    template<class T>
+    T as(decltype(std::declval<T>().begin())* = 0) const
+    {
+        typedef decltype(std::declval<T>().begin()) It;
+        typedef typename std::iterator_traits<It>::value_type S;
+        T result;
+        for (auto js : array_items())
+        {
+            result.push_back(js.as<S>());
+        }
+        return result;
+    }
+    
     bool operator== (const Json &rhs) const;
     bool operator<  (const Json &rhs) const;
     bool operator!= (const Json &rhs) const { return !(*this == rhs); }

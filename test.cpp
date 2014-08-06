@@ -55,6 +55,10 @@ struct Corge { static Corge from_json(const Json& js) { return Corge(); } };
 void from_json(const Json& js, Quux& quux) { quux = Quux(); }
 void from_json(const Json& js, Corge& cg) { cg = Corge(); }
 
+typedef std::vector<Baz> BazList;
+typedef std::vector<Quux> QuuxList;
+typedef std::vector<Corge> CorgeList;
+
 static_assert(json11::detail::has_member_from_json<Baz>::value, "");
 static_assert(!json11::detail::has_member_from_json<Quux>::value, "");
 static_assert(json11::detail::has_member_from_json<Corge>::value, "");
@@ -162,4 +166,8 @@ int main(int argc, char **argv) {
     Dummy::Baz baz = Json().as<Dummy::Baz>();
     Dummy::Quux quux = Json().as<Dummy::Quux>();
     Dummy::Corge cg = Json().as<Dummy::Corge>();
+
+    Dummy::BazList baz_list = Json().as<Dummy::BazList>();
+    Dummy::QuuxList quux_list = Json().as<Dummy::QuuxList>();
+    Dummy::CorgeList corge_list = Json().as<Dummy::CorgeList>();
 }
