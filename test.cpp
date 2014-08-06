@@ -48,6 +48,22 @@ static_assert(json11::detail::has_free_to_json<Foo>::value, "");
 static_assert(json11::detail::has_free_to_json<Bar>::value, "");
 static_assert(!json11::detail::has_only_free_to_json<Foo>::value, "");
 static_assert(json11::detail::has_only_free_to_json<Bar>::value, "");
+
+struct Baz { static Baz from_json(const Json& js) { return Baz(); } };
+struct Quux { };
+struct Corge { static Corge from_json(const Json& js) { return Corge(); } };
+void from_json(const Json& js, Quux& quux) { quux = Quux(); }
+void from_json(const Json& js, Corge& cg) { cg = Corge(); }
+
+static_assert(json11::detail::has_member_from_json<Baz>::value, "");
+static_assert(!json11::detail::has_member_from_json<Quux>::value, "");
+static_assert(json11::detail::has_member_from_json<Corge>::value, "");
+static_assert(!json11::detail::has_free_from_json<Baz>::value, "");
+static_assert(json11::detail::has_free_from_json<Quux>::value, "");
+static_assert(json11::detail::has_free_from_json<Corge>::value, "");
+static_assert(!json11::detail::has_only_free_from_json<Baz>::value, "");
+static_assert(json11::detail::has_only_free_from_json<Quux>::value, "");
+static_assert(!json11::detail::has_only_free_from_json<Corge>::value, "");
 }
 
 int main(int argc, char **argv) {

@@ -58,6 +58,7 @@
 
 namespace json11 {
 
+class Json;
 class JsonValue;
 
 namespace detail
@@ -68,6 +69,8 @@ struct TraitsHelpers
 {
     static std::false_type test_member_encode(...);
     static std::false_type test_free_encode(...);
+    static std::false_type test_member_decode(...);
+    static std::false_type test_free_decode(...);
 
     template<class S>
     static std::true_type test_member_encode(
@@ -80,6 +83,19 @@ struct TraitsHelpers
         const S&,
         decltype(to_json(std::declval<S>()))* = 0
     );
+
+    template<class S>
+    static std::true_type test_member_decode(
+        const S&,
+        decltype(S::from_json(std::declval<Json>()))* = 0
+    );
+
+    template<class S>
+    static std::true_type test_free_decode(
+        const S&,
+        decltype(from_json(std::declval<Json>(), std::declval<S&>()))* = 0
+    );
+    
 };
 
 /* Inherits from std::true_type if t.to_json() is a valid expression. */
@@ -105,6 +121,38 @@ struct has_only_free_to_json :
     std::integral_constant<
         bool, 
         !has_member_to_json<T>::value && has_free_to_json<T>::value
+    >
+{ };
+
+/* 
+ * Inherits from std::true_type if T::from_json(Json()) is 
+ * a valid expression. 
+ */
+template<class T>
+struct has_member_from_json :
+    decltype(TraitsHelpers::test_member_decode(std::declval<T>()))
+{
+};
+
+/* 
+ * Inherits from std::true_type if from_json(Json(), t) is 
+ * a valid expression. 
+ */
+template<class T>
+struct has_free_from_json :
+    decltype(TraitsHelpers::test_free_decode(std::declval<T>()))
+{
+};
+
+/* 
+ * Inherits from std::true_type if from_json(Json(), t) is valid
+ * but t.from_json(Json()) is not.
+ */
+template<class T>
+struct has_only_free_from_json : 
+    std::integral_constant<
+        bool,
+        !has_member_from_json<T>::value && has_free_from_json<T>::value
     >
 { };
 
