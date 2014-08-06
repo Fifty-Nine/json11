@@ -145,11 +145,6 @@ public:
         detail::has_only_free_to_json<T>::value, int>::type = 0>
     Json(const T& t) : Json(to_json(t)) { }
     
-    // Implicit constructor: anything with both a to_json() free and member function.
-/*    template<class T, typename std::enable_if<
-        detail::has_member_and_free_to_json<T>::value, int>::type = 0>
-    Json(const T& t) : Json(t.to_json()) { }*/
-
     // Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
     template <class M, typename std::enable_if<
         std::is_constructible<std::string, decltype(std::declval<M>().begin()->first)>::value
