@@ -124,6 +124,14 @@ struct has_only_free_to_json :
     >
 { };
 
+template<class T>
+struct has_to_json : 
+    std::integral_constant<
+        bool,
+        has_member_to_json<T>::value || has_free_to_json<T>::value
+    >
+{ };
+
 /* 
  * Inherits from std::true_type if T::from_json(Json()) is 
  * a valid expression. 
@@ -153,6 +161,14 @@ struct has_only_free_from_json :
     std::integral_constant<
         bool,
         !has_member_from_json<T>::value && has_free_from_json<T>::value
+    >
+{ };
+
+template<class T>
+struct has_from_json : 
+    std::integral_constant<
+        bool,
+        has_member_from_json<T>::value || has_free_from_json<T>::value
     >
 { };
 
@@ -202,7 +218,8 @@ public:
 
     // Implicit constructor: vector-like objects (std::list, std::vector, std::set, etc)
     template <class V, typename std::enable_if<
-        std::is_constructible<Json, decltype(*std::declval<V>().begin())>::value,
+        std::is_constructible<Json, decltype(*std::declval<V>().begin())>::value && 
+        !detail::has_to_json<V>::value,
             int>::type = 0>
     Json(const V & v) : Json(array(v.begin(), v.end())) {}
 
@@ -285,7 +302,10 @@ public:
         return result;
     }
 
-    template<class T>
+    template<
+        class T,
+        class = typename std::enable_if<!detail::has_from_json<T>::value>::type
+    >
     T as(decltype(std::declval<T>().begin())* = 0) const
     {
         typedef decltype(std::declval<T>().begin()) It;
