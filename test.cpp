@@ -1,5 +1,6 @@
 #include <string>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include "json11.hpp"
@@ -25,7 +26,10 @@ CHECK_TRAIT(is_nothrow_destructible<Json>);
 
 void parse_from_stdin() {
     string buf;
-    while (!std::cin.eof()) buf += std::cin.get();
+    string line;
+    while (std::getline(std::cin, line)) {
+        buf += line + "\n";
+    }
 
     string err;
     auto json = Json::parse(buf, err);
@@ -124,7 +128,15 @@ int main(int argc, char **argv) {
 
     Json uni = Json::parse(unicode_escape_test, err);
     assert(uni[0].string_value().size() == (sizeof utf8) - 1);
-    assert(memcmp(uni[0].string_value().data(), utf8, sizeof utf8) == 0);
+    assert(std::memcmp(uni[0].string_value().data(), utf8, sizeof utf8) == 0);
+
+    // Demonstrates the behavior change in Xcode 7 / Clang 3.7 described
+    // here: https://llvm.org/bugs/show_bug.cgi?id=23812
+    Json nested_array = Json::array { Json::array { 1, 2, 3 } };
+    assert(nested_array.is_array());
+    assert(nested_array.array_items().size() == 1);
+    assert(nested_array.array_items()[0].is_array());
+    assert(nested_array.array_items()[0].array_items().size() == 3);
 
     Json my_json = Json::object {
         { "key1", "value1" },
